@@ -1,28 +1,40 @@
 name: Build Android APK
 
-on: 
+on:
   push:
     branches: [ main, master ]
-  workflow_dispatch: # 允许你手动点击运行
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 # 指定稳定的系统版本
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # 升级到 v4
+        uses: actions/checkout@v4
 
-      - name: Buildozer Action
-        # 使用目前维护最频繁、最稳定的 buildozer action
-        uses: Enteee/buildozer-action@v1.2.2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          buildozer_version: stable
-          python_version: 3.11
+          python_version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libffi-dev libssl-dev git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libgdbm-dev libsqlite3-dev tk-dev libbz2-dev libreadline-dev liblzma-dev libffi-dev uuid-dev lld libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.33 kivy
+
+      - name: Build with Buildozer
+        run: |
+          # 运行 buildozer 自动打包
+          yes | buildozer -v android debug
+        env:
+          # 解决安卓 SDK 接受协议的问题
+          ANDROID_SDK_HOME: /home/runner/work/android-sdk
 
       - name: Upload APK
-        # 修复 v3 过期问题，升级到 v4
         uses: actions/upload-artifact@v4
         with:
-          name: my-music-player
+          name: music-player-apk
           path: bin/*.apk
