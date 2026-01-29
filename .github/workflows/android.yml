@@ -1,20 +1,28 @@
 name: Build Android APK
-on: [push, pull_request] # 只要你改了代码并提交，它就自动开始打包
+
+on: 
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # 允许你手动点击运行
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+    runs-on: ubuntu-22.04 # 指定稳定的系统版本
 
-      - name: Buildozer Android Action
-        uses: ArtemSerebriakov/buildozer-action@v1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 升级到 v4
+
+      - name: Buildozer Action
+        # 使用目前维护最频繁、最稳定的 buildozer action
+        uses: Enteee/buildozer-action@v1.2.2
         with:
           buildozer_version: stable
-          python_version: 3.8
-          # 打包完成后保留 APK 文件
+          python_version: 3.11
+
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        # 修复 v3 过期问题，升级到 v4
+        uses: actions/upload-artifact@v4
         with:
           name: my-music-player
           path: bin/*.apk
